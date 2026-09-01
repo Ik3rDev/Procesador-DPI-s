@@ -22,7 +22,7 @@
     }
   </style>
 </head>
-<body class="bg-slate-100 min-h-screen text-slate-800 font-sans pb-12">
+<body class="bg-slate-100 min-h-screen text-slate-800 font-sans pb-16 relative">
 
   <!-- Encabezado Rojo -->
   <header class="bg-red-700 text-white py-6 shadow-lg mb-8">
@@ -34,7 +34,7 @@
     </div>
   </header>
 
-  <main class="max-w-5xl mx-auto px-4 space-y-8">
+  <main class="max-w-5xl mx-auto px-4 space-y-8 mb-12">
 
     <!-- SECCIÓN 1: PROCESADOR DE DPI -->
     <section class="bg-white rounded-2xl shadow-sm border border-red-100 p-6 space-y-6">
@@ -145,6 +145,25 @@
     </section>
 
   </main>
+
+  <!-- PIE DE PÁGINA / LEGAL ADVISOR / VERSIÓN -->
+  <footer class="bg-slate-900 text-slate-400 py-4 px-6 border-t border-slate-800 text-xs">
+    <div class="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+      
+      <!-- Indicador de Versión -->
+      <div class="flex items-center gap-2 font-mono">
+        <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span>Versión: <strong class="text-slate-200 font-bold">v2.2.1</strong></span>
+      </div>
+
+      <!-- Legal Advisor / Descargo de responsabilidad -->
+      <div class="text-center md:text-right text-slate-400 space-y-1">
+        <p>⚖️ <strong>Legal Advisor:</strong> Aplicación de uso exclusivamente interno y operativo local.</p>
+        <p class="text-[10px] text-slate-500">Los datos procesados se manejan localmente en memoria y no quedan almacenados en servidores externos sin autorización.</p>
+      </div>
+
+    </div>
+  </footer>
 
   <!-- MODAL CON CANVAS DE POLÍGONO -->
   <div id="cropModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex justify-center items-center p-4">
