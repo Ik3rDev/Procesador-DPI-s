@@ -167,7 +167,7 @@
             🔄 Rotar 90°
           </button>
           <button onclick="autodetectarDPI()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2 px-3 rounded-lg transition text-xs">
-            🎯 Redetectar
+            🎯 Restablecer Puntos
           </button>
         </div>
         <div class="flex gap-2">
@@ -272,64 +272,16 @@
       document.getElementById('cropModal').classList.add('hidden');
     }
 
+    // Coloca las esquinas en los bordes directos de la imagen sin alterar orientación
     function autodetectarDPI() {
       let w = canvas.width;
       let h = canvas.height;
 
-      if (window.cv && cv.Mat) {
-        try {
-          let src = cv.imread(rawImage);
-          let gray = new cv.Mat();
-          cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY, 0);
-          let blurred = new cv.Mat();
-          cv.GaussianBlur(gray, blurred, new cv.Size(9, 9), 0);
-          let edged = new cv.Mat();
-          cv.Canny(blurred, edged, 50, 150);
-
-          let contours = new cv.MatVector();
-          let hierarchy = new cv.Mat();
-          cv.findContours(edged, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
-
-          let maxArea = 0;
-          let bestPoly = null;
-
-          for (let i = 0; i < contours.size(); ++i) {
-            let cnt = contours.get(i);
-            let area = cv.contourArea(cnt);
-            if (area > (w * h * 0.12)) {
-              let peri = cv.arcLength(cnt, true);
-              let poly = new cv.Mat();
-              cv.approxPolyDP(cnt, poly, 0.03 * peri, true);
-              if (poly.rows === 4 && area > maxArea) {
-                maxArea = area;
-                bestPoly = poly;
-              }
-            }
-          }
-
-          if (bestPoly) {
-            points = [
-              { x: bestPoly.data32S[0], y: bestPoly.data32S[1] },
-              { x: bestPoly.data32S[2], y: bestPoly.data32S[3] },
-              { x: bestPoly.data32S[4], y: bestPoly.data32S[5] },
-              { x: bestPoly.data32S[6], y: bestPoly.data32S[7] }
-            ];
-            dibujarCanvas();
-            src.delete(); gray.delete(); blurred.delete(); edged.delete(); contours.delete(); hierarchy.delete();
-            return;
-          }
-        } catch (err) {
-          console.warn("Usando recuadro por defecto", err);
-        }
-      }
-
-      let padX = w * 0.15;
-      let padY = h * 0.20;
       points = [
-        { x: padX, y: padY },
-        { x: w - padX, y: padY },
-        { x: w - padX, y: h - padY },
-        { x: padX, y: h - padY }
+        { x: 0, y: 0 },
+        { x: w, y: 0 },
+        { x: w, y: h },
+        { x: 0, y: h }
       ];
       dibujarCanvas();
     }
@@ -338,7 +290,7 @@
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(rawImage, 0, 0);
 
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
       ctx.beginPath();
       ctx.rect(0, 0, canvas.width, canvas.height);
       ctx.moveTo(points[0].x, points[0].y);
