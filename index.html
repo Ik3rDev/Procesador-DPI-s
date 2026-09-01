@@ -497,15 +497,15 @@
       ocrStatus.className = "text-xs font-semibold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200 animate-pulse";
 
       try {
-        const respuesta = await fetch('http://localhost:3000/api/analizar-dpi', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            imageBase64: base64Image
-          })
-        });
+            const respuesta = await fetch('https://magenta-coherent-resurrect.ngrok-free.dev/api/analizar-dpi', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    imageBase64: base64Image
+                })
+            });
 
         if (!respuesta.ok) {
           throw new Error(`Servidor respondió con código ${respuesta.status}`);
