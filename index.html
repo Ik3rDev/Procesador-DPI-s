@@ -305,88 +305,88 @@
       document.getElementById('cropModal').classList.add('hidden');
     }
 
-    // Algoritmo Mejorado de Detección Automática de Bordes con OpenCV.js
-    function autodetectarDPI() {
-      let w = canvas.width;
-      let h = canvas.height;
+ // Algoritmo Mejorado de Detección Automática con Margen de Respaldo (v2.3)
+function autodetectarDPI() {
+  let w = canvas.width;
+  let h = canvas.height;
 
-      // Asignación por defecto (esquinas completas)
-      let defaultPoints = [
-        { x: 0, y: 0 },
-        { x: w, y: 0 },
-        { x: w, y: h },
-        { x: 0, y: h }
-      ];
+  // En lugar de irse a las esquinas exactas (0,0), dejamos un margen del 15% hacia el centro
+  let marginX = w * 0.15;
+  let marginY = h * 0.15;
 
-      if (window.cv && cv.Mat) {
-        try {
-          let srcMat = cv.imread(rawImage);
-          let gray = new cv.Mat();
-          let blurred = new cv.Mat();
-          let edges = new cv.Mat();
+  let defaultPoints = [
+    { x: marginX, y: marginY },
+    { x: w - marginX, y: marginY },
+    { x: w - marginX, y: h - marginY },
+    { x: marginX, y: h - marginY }
+  ];
 
-          // Preprocesamiento para filtro de ruido y bordes Canny
-          cv.cvtColor(srcMat, gray, cv.COLOR_RGBA2GRAY);
-          cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0);
-          cv.Canny(blurred, edges, 50, 150);
+  if (window.cv && cv.Mat) {
+    try {
+      let srcMat = cv.imread(rawImage);
+      let gray = new cv.Mat();
+      let blurred = new cv.Mat();
+      let edges = new cv.Mat();
 
-          let contours = new cv.MatVector();
-          let hierarchy = new cv.Mat();
-          cv.findContours(edges, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+      // Preprocesamiento de imagen
+      cv.cvtColor(srcMat, gray, cv.COLOR_RGBA2GRAY);
+      cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0);
+      cv.Canny(blurred, edges, 30, 120); // Umbrales de Canny ajustados para detectar mejor el DPI
 
-          let maxArea = 0;
-          let bestApprox = null;
+      let contours = new cv.MatVector();
+      let hierarchy = new cv.Mat();
+      cv.findContours(edges, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
 
-          for (let i = 0; i < contours.size(); ++i) {
-            let cnt = contours.get(i);
-            let area = cv.contourArea(cnt);
-            if (area > (w * h * 0.10)) { // Considerar contornos mayores al 10% de la imagen
-              let peri = cv.arcLength(cnt, true);
-              let approx = new cv.Mat();
-              cv.approxPolyDP(cnt, approx, 0.02 * peri, true);
+      let maxArea = 0;
+      let detectedPoints = null;
 
-              if (approx.rows === 4 && area > maxArea) {
-                maxArea = area;
-                if (bestApprox) bestApprox.delete();
-                bestApprox = approx;
-              } else {
-                approx.delete();
-              }
-            }
-          }
+      for (let i = 0; i < contours.size(); ++i) {
+        let cnt = contours.get(i);
+        let area = cv.contourArea(cnt);
+        
+        // Debe ocupar al menos el 10% de la imagen pero no más del 95%
+        if (area > (w * h * 0.10) && area < (w * h * 0.95)) {
+          let peri = cv.arcLength(cnt, true);
+          let approx = new cv.Mat();
+          cv.approxPolyDP(cnt, approx, 0.02 * peri, true);
 
-          if (bestApprox) {
-            let pts = [];
-            for (let i = 0; i < 4; i++) {
-              pts.push({
-                x: bestApprox.data32S[i * 2],
-                y: bestApprox.data32S[i * 2 + 1]
+          // Si detecta 4 esquinas
+          if (approx.rows === 4 && area > maxArea) {
+            maxArea = area;
+            detectedPoints = [];
+            for (let j = 0; j < 4; j++) {
+              detectedPoints.push({
+                x: approx.data32S[j * 2],
+                y: approx.data32S[j * 2 + 1]
               });
             }
-            // Ordenar puntos: superior-izq, superior-der, inferior-der, inferior-izq
-            pts.sort((a, b) => a.y - b.y);
-            let topTwo = pts.slice(0, 2).sort((a, b) => a.x - b.x);
-            let bottomTwo = pts.slice(2, 4).sort((a, b) => b.x - a.x);
-            points = [topTwo[0], topTwo[1], bottomTwo[0], bottomTwo[1]];
-
-            bestApprox.delete();
-          } else {
-            points = defaultPoints;
           }
-
-          srcMat.delete(); gray.delete(); blurred.delete(); edges.delete();
-          contours.delete(); hierarchy.delete();
-        } catch (e) {
-          console.warn("Fallo en OpenCV autodetección, usando valor predeterminado", e);
-          points = defaultPoints;
+          approx.delete();
         }
+      }
+
+      if (detectedPoints) {
+        // Ordenar puntos: superior-izq, superior-der, inferior-der, inferior-izq
+        detectedPoints.sort((a, b) => a.y - b.y);
+        let topTwo = detectedPoints.slice(0, 2).sort((a, b) => a.x - b.x);
+        let bottomTwo = detectedPoints.slice(2, 4).sort((a, b) => b.x - a.x);
+        points = [topTwo[0], topTwo[1], bottomTwo[0], bottomTwo[1]];
       } else {
         points = defaultPoints;
       }
 
-      dibujarCanvas();
+      srcMat.delete(); gray.delete(); blurred.delete(); edges.delete();
+      contours.delete(); hierarchy.delete();
+    } catch (e) {
+      console.warn("Fallo en OpenCV autodetección, usando margen predeterminado", e);
+      points = defaultPoints;
     }
+  } else {
+    points = defaultPoints;
+  }
 
+  dibujarCanvas();
+}
     function dibujarCanvas() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(rawImage, 0, 0);
