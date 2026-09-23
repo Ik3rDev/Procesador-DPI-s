@@ -546,12 +546,14 @@ function autodetectarDPI() {
       ocrStatus.innerText = "⏳ Enviando a la IA...";
       ocrStatus.className = "text-xs font-semibold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200 animate-pulse";
 
-       try {
-         const respuesta = await fetch('https://thick-lamps-double.loca.lt](https://thick-lamps-double.loca.lt', {
-         method: 'POST',
-         headers: { 'Content-Type': 'application/json' },
-         body: JSON.stringify({ imageBase64: base64Image })
-        });   
+       const respuesta = await fetch('https://dpi-optiplex-claro2.loca.lt/api/analizar-dpi', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'bypass-tunnel-reminder': 'true'
+  },
+  body: JSON.stringify({ imageBase64: base64Image })
+});
 
         if (!respuesta.ok) throw new Error(`Código ${respuesta.status}`);
 
