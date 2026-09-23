@@ -541,38 +541,42 @@ function autodetectarDPI() {
       cerrarModal();
     }
 
-    async function ejecutarOcrDpi(base64Image) {
-      const ocrStatus = document.getElementById('ocr-status');
-      ocrStatus.innerText = "⏳ Enviando a la IA...";
-      ocrStatus.className = "text-xs font-semibold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200 animate-pulse";
+  async function ejecutarOcrDpi(base64Image) {
+  const ocrStatus = document.getElementById('ocr-status');
+  ocrStatus.innerText = "⏳ Enviando a la IA...";
+  ocrStatus.className = "text-xs font-semibold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200 animate-pulse";
 
-       const respuesta = await fetch('https://dpi-optiplex-claro2.loca.lt/api/analizar-dpi', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'bypass-tunnel-reminder': 'true'
-  },
-  body: JSON.stringify({ imageBase64: base64Image })
-});
-
-        if (!respuesta.ok) throw new Error(`Código ${respuesta.status}`);
-
-        ocrStatus.innerText = "🤖 Procesando respuesta...";
-        const datos = await respuesta.json();
-
-        document.getElementById('input-cui').value = datos.cui || "";
-        document.getElementById('input-nombre').value = datos.nombre || "";
-
-        ocrStatus.innerText = "✅ Lectura IA Completada";
-        ocrStatus.className = "text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200";
-
-      } catch (err) {
-        console.error("Error al procesar con la IA:", err);
-        ocrStatus.innerText = "❌ Error al conectar con el servidor";
-        ocrStatus.className = "text-xs font-semibold text-rose-700 bg-rose-50 px-2.5 py-1 rounded-md border border-rose-200";
+  try {
+    const respuesta = await fetch(
+      'https://dpi-optiplex-claro2.loca.lt/api/analizar-dpi',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'bypass-tunnel-reminder': 'true'
+        },
+        body: JSON.stringify({ imageBase64: base64Image })
       }
+    );
+
+    if (!respuesta.ok) {
+      throw new Error(`Código ${respuesta.status}`);
     }
 
+    ocrStatus.innerText = "🤖 Procesando respuesta...";
+    const datos = await respuesta.json();
+
+    document.getElementById('input-cui').value = datos.cui || "";
+    document.getElementById('input-nombre').value = datos.nombre || "";
+
+    ocrStatus.innerText = "✅ Lectura IA Completada";
+    ocrStatus.className = "text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200";
+  } catch (err) {
+    console.error("Error al procesar con la IA:", err);
+    ocrStatus.innerText = "❌ Error al conectar con el servidor";
+    ocrStatus.className = "text-xs font-semibold text-rose-600 bg-rose-50 px-2.5 py-1 rounded-md border border-rose-200";
+  }
+}
     function copiarMemo() {
       const cui = document.getElementById('input-cui').value || 'N/A';
       const nombre = document.getElementById('input-nombre').value || 'N/A';
